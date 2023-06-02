@@ -34,20 +34,39 @@ class _WorkoutCardState extends State<WorkoutCard> {
           context: context,
           builder: (context) {
             return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(13),
+              ),
               title: Text('Delete \"${widget.workout.name}\"?'),
+              content: Text(
+                  'Are you sure you want to delete this workout? This cannot be undone.'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.grey.shade400,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
                   child: const Text(
-                    'No',
-                    style: TextStyle(color: kOrangeLightColor),
+                    'Cancel',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
                 TextButton(
                   onPressed: widget.confirmDismissPressed,
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
                   child: const Text(
-                    'Yes',
-                    style: TextStyle(color: kBlueLightColor),
+                    'Delete',
+                    style: TextStyle(color: Colors.white),
                   ),
                 )
               ],

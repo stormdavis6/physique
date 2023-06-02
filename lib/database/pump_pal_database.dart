@@ -175,7 +175,7 @@ class PumpPalDatabase {
     }
   }
 
-  Future<WorkoutExercise> readWorkoutExerciseByWorkoutId(int id) async {
+  Future<List<WorkoutExercise>> readWorkoutExercisesByWorkoutId(int id) async {
     final db = await instance.database;
     final maps = await db.query(
       tableWorkoutExercises,
@@ -185,7 +185,11 @@ class PumpPalDatabase {
     );
 
     if (maps.isNotEmpty) {
-      return WorkoutExercise.fromJson(maps.first);
+      List<WorkoutExercise> workoutExerciseList = [];
+      for (var item in maps) {
+        workoutExerciseList.add(WorkoutExercise.fromJson(item));
+      }
+      return workoutExerciseList;
     } else {
       throw Exception('ID $id is not found');
     }
@@ -205,7 +209,7 @@ class PumpPalDatabase {
 
   Future<List<WorkoutExercise>> readAllWorkoutExercises() async {
     final db = await instance.database;
-    final result = await db.query(tableWorkoutExercises, orderBy: 'name ASC');
+    final result = await db.query(tableWorkoutExercises, orderBy: '_id ASC');
     return result.map((json) => WorkoutExercise.fromJson(json)).toList();
   }
 

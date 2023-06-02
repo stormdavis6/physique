@@ -63,6 +63,7 @@ class _AddExercisesPopupState extends State<AddExercisesPopup> {
     exercises = await PumpPalDatabase.instance.readAllExercises();
     duplicateExercises = exercises;
     SearchExercises(searchController.text);
+    print('${exercises[0].name} , ${exercises[0].id}');
 
     if (widget.currentExercises.isNotEmpty) {
       for (int i = 0; i < widget.currentExercises.length; i++) {
@@ -172,7 +173,7 @@ class _AddExercisesPopupState extends State<AddExercisesPopup> {
                                       i < selectedExercises.length;
                                       i++) {
                                     print(
-                                        'Returning Exercise: ${exercises[i].name}');
+                                        'Returning Exercise: ${exercises[i].name} w/ ExerciseID: ${exercises[i].id}');
                                   }
                                   Navigator.pop(
                                     context,
@@ -287,8 +288,8 @@ class _AddExercisesPopupState extends State<AddExercisesPopup> {
                 } else {
                   selectedExercises.add(exercise);
                   exercise.isSelected = true;
-                  WorkoutExercise workoutExercise =
-                      WorkoutExercise(exercise_id: exercise.id!, sets: 1);
+                  WorkoutExercise workoutExercise = WorkoutExercise(
+                      exercise_id: exercise.id!, sets: 1, reps: [10]);
                   selectedWorkoutExercises.add(workoutExercise);
                   print(
                       'Adding ${workoutExercise.exercise_id} to selectedWorkoutExercises');

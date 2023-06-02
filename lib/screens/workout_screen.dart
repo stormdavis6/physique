@@ -5,6 +5,7 @@ import 'package:physique/database/pump_pal_database.dart';
 import 'package:physique/models/exercise.dart';
 import 'package:physique/screens/workout_create_screen.dart';
 import 'package:physique/screens/workout_details.dart';
+import 'package:physique/screens/workout_edit_screen.dart';
 import 'package:physique/widgets/workout_card.dart';
 
 import '../models/workout.dart';
@@ -168,7 +169,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                         await showDialog(
                                           context: context,
                                           builder: (BuildContext context) =>
-                                              WorkoutEditPopup(
+                                              WorkoutEditScreen(
                                             workout: workout,
                                           ),
                                         ).then(

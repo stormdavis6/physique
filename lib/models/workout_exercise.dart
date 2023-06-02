@@ -19,7 +19,7 @@ class WorkoutExercise {
   final int? workout_id;
   final int exercise_id;
   int? sets;
-  final List<int>? reps;
+  List<int>? reps;
 
   WorkoutExercise(
       {this.id,
@@ -47,7 +47,11 @@ class WorkoutExercise {
         id: json[WorkoutExerciseFields.id] as int,
         workout_id: json[WorkoutExerciseFields.workout_id] as int,
         exercise_id: json[WorkoutExerciseFields.exercise_id] as int,
-        reps: json[WorkoutExerciseFields.reps] as List<int>?,
+        reps: json[WorkoutExerciseFields.reps]
+            .toString()
+            .split(',')
+            .map(int.parse)
+            .toList(),
         sets: json[WorkoutExerciseFields.sets] as int,
       );
 
@@ -55,7 +59,7 @@ class WorkoutExercise {
         WorkoutExerciseFields.id: id,
         WorkoutExerciseFields.exercise_id: exercise_id,
         WorkoutExerciseFields.workout_id: workout_id,
-        WorkoutExerciseFields.sets: sets,
-        WorkoutExerciseFields.reps: reps
+        WorkoutExerciseFields.reps: reps?.join(','),
+        WorkoutExerciseFields.sets: sets
       };
 }

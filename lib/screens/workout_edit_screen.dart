@@ -6,37 +6,41 @@ import 'package:physique/widgets/add_exercises_popup.dart';
 import '../constants.dart';
 import '../database/pump_pal_database.dart';
 import '../models/workout.dart';
-import '../widgets/exercise_card.dart';
 
 List<WorkoutExercise> workoutExercises = [];
 
-class WorkoutCreateScreen extends StatefulWidget {
-  const WorkoutCreateScreen({Key? key}) : super(key: key);
+class WorkoutEditScreen extends StatefulWidget {
+  final Workout workout;
+  const WorkoutEditScreen({Key? key, required this.workout}) : super(key: key);
 
   @override
-  State<WorkoutCreateScreen> createState() => _WorkoutCreateScreenState();
+  State<WorkoutEditScreen> createState() => _WorkoutEditScreenState();
 }
 
-class _WorkoutCreateScreenState extends State<WorkoutCreateScreen> {
+class _WorkoutEditScreenState extends State<WorkoutEditScreen> {
   late TextEditingController nameController;
   late TextEditingController descriptionController;
   late FocusNode nameFocusNode;
   late FocusNode descriptionFocusNode;
+  bool isLoading = false;
+  late Workout updatedWorkout;
   List<Exercise> exercises = [];
   bool _validate = false;
 
   @override
   void initState() {
+    GetWorkoutDetails(widget.workout);
+
     nameController = TextEditingController();
+    nameController.text = widget.workout.name;
     nameController.addListener(() => setState(() {}));
 
     descriptionController = TextEditingController();
+    descriptionController.text = widget.workout.description!;
     descriptionController.addListener(() => setState(() {}));
 
     nameFocusNode = FocusNode();
     descriptionFocusNode = FocusNode();
-
-    super.initState();
   }
 
   @override
@@ -48,6 +52,26 @@ class _WorkoutCreateScreenState extends State<WorkoutCreateScreen> {
     descriptionFocusNode.dispose();
 
     super.dispose();
+  }
+
+  void GetWorkoutDetails(Workout workout) async {
+    setState(() {
+      isLoading = true;
+    });
+    List<WorkoutExercise> allWorkoutExercises =
+        await PumpPalDatabase.instance.readAllWorkoutExercises();
+    print(allWorkoutExercises.length);
+    workoutExercises = await PumpPalDatabase.instance
+        .readWorkoutExercisesByWorkoutId(workout.id!);
+    for (var item in workoutExercises) {
+      exercises
+          .add(await PumpPalDatabase.instance.readExercise(item.exercise_id));
+      print(item.reps);
+    }
+    updatedWorkout = workout;
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -94,7 +118,7 @@ class _WorkoutCreateScreenState extends State<WorkoutCreateScreen> {
                         },
                       ),
                       Text(
-                        'New Workout',
+                        'Edit Workout',
                         style: Theme.of(context)
                             .textTheme
                             .titleLarge
@@ -128,34 +152,49 @@ class _WorkoutCreateScreenState extends State<WorkoutCreateScreen> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(13),
                                 ),
-                                content: Text(
+                                content: const Text(
                                   'You must add at least 1 exercise',
                                   textAlign: TextAlign.center,
                                 ));
                             ScaffoldMessenger.of(context)
                                 .showSnackBar(snackBar);
                           } else {
-                            Workout newWorkout = Workout(
+                            updatedWorkout = Workout(
+                                id: updatedWorkout.id,
                                 name: nameController.text,
                                 description: descriptionController.text);
-                            if (newWorkout.name.isNotEmpty) {
-                              newWorkout = await PumpPalDatabase.instance
-                                  .createWorkout(newWorkout);
-                              // print(workoutExercises[0].reps?.join(','));
+                            if (updatedWorkout.name.isNotEmpty) {
+                              int workoutCount = await PumpPalDatabase.instance
+                                  .updateWorkout(updatedWorkout);
+                              print(
+                                  'Number of rows updated: $workoutCount for workoutID ${updatedWorkout.id}');
                               for (int i = 0;
                                   i < workoutExercises.length;
                                   i++) {
                                 WorkoutExercise workoutExercise =
                                     WorkoutExercise(
-                                        workout_id: newWorkout.id,
+                                        id: workoutExercises[i].id,
+                                        workout_id: updatedWorkout.id,
                                         exercise_id:
                                             workoutExercises[i].exercise_id,
                                         sets: workoutExercises[i].sets,
                                         reps: workoutExercises[i].reps);
-                                workoutExercise = await PumpPalDatabase.instance
-                                    .createWorkoutExercise(workoutExercise);
-                                print(
-                                    'Added workout exercise --> ID: ${workoutExercise.id}, Workout_ID: ${workoutExercise.workout_id}, Exercise_ID: ${workoutExercise.exercise_id}, Sets: ${workoutExercise.sets}');
+                                print(workoutExercise.reps);
+                                if (workoutExercise.id != null) {
+                                  int workoutExerciseUpdateCount =
+                                      await PumpPalDatabase.instance
+                                          .updateWorkoutExercise(
+                                              workoutExercise);
+                                  print(
+                                      'Number of rows updated: $workoutExerciseUpdateCount for workoutID ${updatedWorkout.id} & workoutExerciseID ${workoutExercise.id}');
+                                } else {
+                                  WorkoutExercise newWorkoutExercise =
+                                      await PumpPalDatabase.instance
+                                          .createWorkoutExercise(
+                                              workoutExercise);
+                                  print(
+                                      'Added WorkoutExercise: ${newWorkoutExercise.id} for workoutID ${updatedWorkout.id}');
+                                }
                               }
                             }
                             Navigator.pop(context, true);
@@ -193,11 +232,13 @@ class _WorkoutCreateScreenState extends State<WorkoutCreateScreen> {
                             errorText:
                                 _validate ? 'Workout name is required' : null),
                         onChanged: (value) {
-                          setState(() {
-                            value.isEmpty
-                                ? _validate = true
-                                : _validate = false;
-                          });
+                          setState(
+                            () {
+                              value.isEmpty
+                                  ? _validate = true
+                                  : _validate = false;
+                            },
+                          );
                         },
                       ),
                     ],
@@ -247,7 +288,10 @@ class _WorkoutCreateScreenState extends State<WorkoutCreateScreen> {
                                 return ExerciseDetailsCard(
                                   workoutExercise: workoutExercise,
                                   exercise: exercise,
-                                  confirmDismissPressed: () {
+                                  confirmDismissPressed: () async {
+                                    await PumpPalDatabase.instance
+                                        .deleteWorkoutExercise(
+                                            workoutExercise.id!);
                                     exercises.remove(exercise);
                                     workoutExercises.remove(workoutExercise);
                                     Navigator.pop(context, true);
@@ -287,8 +331,7 @@ class _WorkoutCreateScreenState extends State<WorkoutCreateScreen> {
                         }
                       });
                       for (int i = 0; i < exercises.length; i++) {
-                        print(
-                            'Received Exercise: ${exercises[i].name} w/ Exercise ID: ${exercises[i].id}');
+                        print('Received Exercise: ${exercises[i].name}');
                       }
                       for (int i = 0; i < workoutExercises.length; i++) {
                         print(
@@ -325,9 +368,21 @@ class ExerciseDetailsCard extends StatefulWidget {
 }
 
 class _ExerciseDetailsCardState extends State<ExerciseDetailsCard> {
-  List<TextEditingController> controllers = [TextEditingController()];
+  List<TextEditingController> controllers = [];
   late int size = controllers.length;
   List<int> reps = [];
+
+  @override
+  void initState() {
+    int sets = widget.workoutExercise.sets ?? 1;
+    reps = widget.workoutExercise.reps ?? [];
+    for (int i = 0; i < sets; i++) {
+      TextEditingController textEditingController = TextEditingController();
+      textEditingController.text = reps.isEmpty ? '0' : '${reps[i]}';
+      controllers.add(textEditingController);
+    }
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -530,12 +585,14 @@ class _ExerciseDetailsCardState extends State<ExerciseDetailsCard> {
                                 onChanged: (value) {
                                   var repValue = int.tryParse(value);
                                   repValue ??= 0;
-                                  if (reps.asMap().containsKey(index)) {
+                                  if (reps.isNotEmpty && reps.length > index) {
                                     reps[index] = repValue;
                                     print(
-                                        'Adding to reps list for ExerciseID: ${widget.workoutExercise.exercise_id} w/ reps ${reps[index]}');
+                                        'Replacing value in reps list for ExerciseID: ${widget.workoutExercise.exercise_id} w/ reps ${reps[index]}');
                                     widget.workoutExercise.reps = reps;
                                   } else {
+                                    print(
+                                        'Adding value to reps list for ExerciseID: ${widget.workoutExercise.exercise_id} w/ reps $repValue');
                                     reps.add(repValue);
                                   }
                                 },
@@ -572,7 +629,7 @@ class _ExerciseDetailsCardState extends State<ExerciseDetailsCard> {
                                 child: Icon(Icons.delete),
                               ),
                             ] else ...[
-                              Container(
+                              SizedBox(
                                 width: 24,
                                 height: 24,
                               ),
@@ -597,11 +654,13 @@ class _ExerciseDetailsCardState extends State<ExerciseDetailsCard> {
                 onPressed: () {
                   widget.workoutExercise.sets =
                       (widget.workoutExercise.sets! + 1);
+                  widget.workoutExercise.reps?.add(10);
                   int index = workoutExercises.indexWhere(
                       (element) => element.exercise_id == widget.exercise.id);
                   workoutExercises[index] = widget.workoutExercise;
                   setState(() {
                     final controller = TextEditingController();
+                    controller.text = '10';
                     controllers.add(controller);
                   });
                   for (int i = 0; i < controllers.length; i++) {

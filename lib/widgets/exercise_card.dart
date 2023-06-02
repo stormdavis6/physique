@@ -36,25 +36,40 @@ class _ExerciseCardState extends State<ExerciseCard> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text('Delete \"${widget.exercise.name}\"?'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(13),
+              ),
+              title: Text('Remove Exercise?'),
+              content: Text(
+                'This removes \"${widget.exercise.name}\" and all of the associated data (weight, reps, sets) from all previous workouts. You cannot undo this action.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.grey.shade400,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
                   child: const Text(
-                    'No',
-                    style: TextStyle(color: kOrangeLightColor),
+                    'Cancel',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
                 TextButton(
                   onPressed: widget.confirmDismissPressed,
-                  // {
-                  //   Navigator.pop(context, true);
-                  //   PumpPalDatabase.instance
-                  //       .deleteExercise(widget.exercise.id!);
-                  // },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
                   child: const Text(
-                    'Yes',
-                    style: TextStyle(color: kBlueLightColor),
+                    'Remove',
+                    style: TextStyle(color: Colors.white),
                   ),
                 )
               ],
