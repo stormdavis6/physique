@@ -200,6 +200,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         exercises.isNotEmpty
                             ? Expanded(
                                 child: ListView.builder(
+                                  physics: BouncingScrollPhysics(),
                                   scrollDirection: Axis.vertical,
                                   shrinkWrap: true,
                                   itemCount: exercises.length,

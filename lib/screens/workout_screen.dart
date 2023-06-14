@@ -157,6 +157,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                           ),
                           workouts.isNotEmpty
                               ? ListView.builder(
+                                  physics: BouncingScrollPhysics(),
                                   scrollDirection: Axis.vertical,
                                   shrinkWrap: true,
                                   itemCount: workouts.length,

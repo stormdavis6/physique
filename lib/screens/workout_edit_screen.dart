@@ -279,7 +279,7 @@ class _WorkoutEditScreenState extends State<WorkoutEditScreen> {
                       : Expanded(
                           child: ListView.builder(
                               scrollDirection: Axis.vertical,
-                              physics: ScrollPhysics(),
+                              physics: BouncingScrollPhysics(),
                               shrinkWrap: true,
                               itemCount: exercises.length,
                               itemBuilder: (BuildContext context, int index) {
@@ -514,6 +514,7 @@ class _ExerciseDetailsCardState extends State<ExerciseDetailsCard> {
                 height: 10,
               ),
               ListView.builder(
+                  physics: BouncingScrollPhysics(),
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
                   itemCount: widget.workoutExercise.sets,
